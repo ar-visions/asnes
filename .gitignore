@@ -1,0 +1,16 @@
+.DS_Store
+debug
+release
+target
+Cargo.lock
+bin
+tokens
+checkout
+*.o
+tapestry/tapestry
+tapestry/include
+tapestry/lib
+!tapestry/include/A
+!tapestry/include/A-*
+tapestry/share
+*.smc
