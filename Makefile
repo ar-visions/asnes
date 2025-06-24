@@ -1,4 +1,4 @@
-PROJECT := A
+PROJECT := asnes
 
 # use tapestry build system through make
 ifeq ($(strip $(TAPESTRY)),)

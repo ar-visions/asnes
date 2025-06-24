@@ -1,0 +1,82 @@
+#ifndef ASNES
+#define ASNES
+
+// basic memory and cpu state
+#define ROM_BANK_SIZE   0x8000
+#define ROM_START       0x8000
+#define MEM_SIZE        0x1000000  // 16MB full SNES addressable
+#define SPC_RAM_SIZE    0x10000
+#define SPC_RATIO_NUM   1024
+#define SPC_RATIO_DEN   2610       // (CPU MHz * 1000) / (SPC MHz * 1000)
+
+// flag bits in P:
+#define FLAG_M 0x20   // accumulator width: 1=8-bit, 0=16-bit
+#define FLAG_X 0x10   // index width:       1=8-bit, 0=16-bit
+
+
+typedef struct dsp_channel {
+    u16         pos;
+    u16         frac; 
+    i16         samples[4];
+    i16         envelope;
+    u8          env_state;
+    f32         output_l;
+    f32         output_r;
+} dsp_channel;
+
+typedef struct _snd_pcm snd_pcm_t;
+
+typedef struct spc_state {
+    uint16_t    pc;               // program counter
+    uint8_t     a;                // accumulator (8-bit mode)
+    uint8_t     x, y;             // index registers
+    uint8_t     sp;               // stack pointer
+    uint8_t     psw;              // processor status word (spc)
+    uint8_t     direct_page;      // page number (high byte), not full 16-bit like 65816
+    uint8_t     ports[4];         // communication ports to/from cpu
+    u16         echo_pos;         // current position in echo buffer
+    float       echo_history_l;   // previous echo output for feedback
+    float       echo_history_r;
+    dsp_channel channels[8];      // gets mixed down to stereo
+    snd_pcm_t*  pcm_handle;
+    uint8_t*    audio_buffer;
+    size_t      buffer_size;
+    int         sample_rate;      // 32000 Hz for SNES
+    int         cycle_accum;
+    uint8_t     ram[SPC_RAM_SIZE];
+} *spc_state;
+
+typedef struct cpu_state {
+    uint16_t    pc;     // program counter
+    uint8_t     a;      // accumulator (8-bit mode)
+    uint8_t     x, y;   // index registers
+    uint8_t     sp;     // stack pointer
+    uint8_t     p;      // processor status
+
+    uint16_t dp;        // Direct Page register (16-bit)
+    uint8_t dbr;        // Data Bank Register (8-bit)
+    uint8_t pbr;        // Program Bank Register (8-bit)
+    bool    e;          // Emulation mode flag (separate from P)
+    
+    // hidden registers for 16-bit mode:
+    uint8_t b;          // B accumulator (high byte of C in 16-bit mode)
+    uint8_t xh, yh;     // High bytes of X,Y in 16-bit mode
+
+    uint8_t     ports [4];
+    u8*         memory;
+} *cpu_state;
+
+#define asnes_schema(X,Y,...) \
+    i_prop  (X,Y, public, path,         spc_rom)     \
+    i_prop  (X,Y, public, path,         rom)         \
+    i_prop  (X,Y, intern, cpu_state,    cpu)         \
+    i_prop  (X,Y, intern, spc_state,    spc)         \
+    i_method(X,Y, public, map,          interface,  window) \
+    i_method(X,Y, public, object,       background, window) \
+    i_method(X,Y, public, bool,         load)        \
+    i_override(X,Y, method, init) \
+    i_override(X,Y, method, dealloc)
+
+declare_class_2(asnes, app)
+
+#endif

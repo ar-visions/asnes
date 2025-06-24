@@ -14,3 +14,4 @@ tapestry/lib
 !tapestry/include/A-*
 tapestry/share
 *.smc
+*.rom
