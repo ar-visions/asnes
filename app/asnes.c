@@ -152,7 +152,7 @@ map asnes_interface(asnes a, window w) {
     return null;
 }
 
-object asnes_background(asnes a, window w) {
+map asnes_render(asnes a, window w) {
     if (!a->cpu) return null;
 
     // Step both processors
@@ -167,7 +167,14 @@ object asnes_background(asnes a, window w) {
     
     // Generate audio periodically
     asnes_generate_audio(a);
-    return null;
+
+    return m(
+        "background", background(
+            blur,        false,
+            clear_color, vec4f(0.0f, 0.1f, 0.2f, 1.0f),
+            elements,    m()
+        )
+    );
 }
 
 static bool asnes_reset_spc(asnes a) {
@@ -279,12 +286,7 @@ none asnes_init(asnes a) {
         width,          width,
         height,         height);
     
-    a->w->r_background  = target (
-        w,              a->w,
-        wscale,         1.0f,
-        clear_color,    vec4f(0.0f, 0.1f, 0.2f, 1.0f));
-
-    initialize(a->w);
+    initialize(a, a->w);
 }
 
 none asnes_dealloc(asnes a) {
@@ -409,8 +411,8 @@ none echo_processing(spc_state spc, f32* left_mix, f32* right_mix) {
     float echo_out_r = filtered_r + (spc->echo_history_r * (i8)echo_feedback / 128.0f);
 
     // Clamp echo output
-    echo_out_l = clamp(echo_out_l, -1.0f, 1.0f);
-    echo_out_r = clamp(echo_out_r, -1.0f, 1.0f);
+    echo_out_l = clampf(echo_out_l, -1.0f, 1.0f);
+    echo_out_r = clampf(echo_out_r, -1.0f, 1.0f);
 
     // Store new echo input + feedback into echo buffer
     float new_echo_l = echo_input_l + echo_out_l;
@@ -605,8 +607,8 @@ static none asnes_generate_audio(asnes a) {
 
         echo_processing(spc, &left, &right);
 
-        left  = clamp(left,  -1.0f, 1.0f);
-        right = clamp(right, -1.0f, 1.0f);
+        left  = clampf(left,  -1.0f, 1.0f);
+        right = clampf(right, -1.0f, 1.0f);
 
         buffer[i * 2]     = left  * 16384; // left  output channel
         buffer[i * 2 + 1] = right * 16384; // right output channel
