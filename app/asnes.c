@@ -3080,13 +3080,13 @@ static i32 asnes_step(asnes a) {
         cycles = 2;
         break;
         
-    case 0x8A: // TXA (Transfer X to A)
+    case 0x8A: // TXA (Transfer X to Au)
         cpu->a = cpu->x;
         cpu->p = (cpu->p & ~0x82) | (cpu->a == 0 ? 0x02 : 0) | (cpu->a & 0x80);
         cycles = 2;
         break;
         
-    case 0x98: // TYA (Transfer Y to A)
+    case 0x98: // TYA (Transfer Y to Au)
         cpu->a = cpu->y;
         cpu->p = (cpu->p & ~0x82) | (cpu->a == 0 ? 0x02 : 0) | (cpu->a & 0x80);
         cycles = 2;
@@ -5025,7 +5025,7 @@ static i32 asnes_step(asnes a) {
     }
 
     // 65816 specific opcodes
-    case 0xEB: { // XBA (Exchange B and A - swap high/low bytes of A)
+    case 0xEB: { // XBA (Exchange B and A - swap high/low bytes of Au)
         // In 8-bit mode, this would swap with hidden B register
         // For now, just swap with itself (no-op in 8-bit mode)
         cycles = 3;
